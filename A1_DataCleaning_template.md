@@ -45,10 +45,16 @@ N.B. Create a GitHub repository for the Assignment 1 and link it to a project on
 If you're not in a project in Rstudio, make sure to set your working directory here. If you created an RStudio project, then your working directory (the directory with your data and code for these assignments) is the project directory.
 
 ``` r
-pacman::p_load(tidyverse,janitor)
+pacman::p_load(tidyverse,janitor, dplyr)
 ```
 
 Load the three data sets, after downloading them from dropbox and saving them in your working directory: \* Demographic data for the participants: <https://www.dropbox.com/s/w15pou9wstgc8fe/demo_train.csv?dl=0> \* Length of utterance data: <https://www.dropbox.com/s/usyauqm37a76of6/LU_train.csv?dl=0> \* Word data: <https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0>
+
+``` r
+utterance <- read.csv("LU_train.csv")
+token<- read.csv("token_train.csv")
+demographics <- read.csv("demo_train.csv")
+```
 
 Explore the 3 datasets (e.g. visualize them, summarize them, etc.). You will see that the data is messy, since the psychologist collected the demographic data, the linguist analyzed the length of utterance in May 2014 and the fumbling jack-of-all-trades analyzed the words several months later. In particular: - the same variables might have different names (e.g. participant and visit identifiers) - the same variables might report the values in different ways (e.g. participant and visit IDs) Welcome to real world of messy data :-)
 
@@ -60,13 +66,31 @@ So:
 
 Tip: look through the chapter on data transformation in R for data science (<http://r4ds.had.co.nz>). Alternatively you can look into the package dplyr (part of tidyverse), or google "how to rename variables in R". Or check the janitor R package. There are always multiple ways of solving any problem and no absolute best method.
 
+``` r
+# Changing names of mismatching variable names
+demographics <- rename(demographics, SUBJ=Child.ID)
+demographics <- rename(demographics, VISIT=Visit)
+```
+
 2b. Find a way to homogeneize the way "visit" is reported (visit1 vs. 1).
 
 Tip: The stringr package is what you need. str\_extract () will allow you to extract only the digit (number) from a string, by using the regular expression \\d.
 
+``` r
+# Homogenizing the 'VISIT' collumn in utterance and token data with the other data frames
+utterance$VISIT <- str_extract(utterance$VISIT, "\\d")
+token$VISIT <- str_extract(token$VISIT, "\\d")
+```
+
 2c. We also need to make a small adjustment to the content of the Child.ID coloumn in the demographic data. Within this column, names that are not abbreviations do not end with "." (i.e. Adam), which is the case in the other two data sets (i.e. Adam.). If The content of the two variables isn't identical the rows will not be merged. A neat way to solve the problem is simply to remove all "." in all datasets.
 
 Tip: stringr is helpful again. Look up str\_replace\_all Tip: You can either have one line of code for each child name that is to be changed (easier, more typing) or specify the pattern that you want to match (more complicated: look up "regular expressions", but less typing)
+
+``` r
+demographics$SUBJ <- str_replace_all(demographics$SUBJ, "[[:punct:]]", "")
+utterance$SUBJ <- str_replace_all(utterance$SUBJ, "[[:punct:]]", "")
+token$SUBJ <- str_replace_all(token$SUBJ, "[[:punct:]]", "")
+```
 
 2d. Now that the nitty gritty details of the different data sets are fixed, we want to make a subset of each data set only containig the variables that we wish to use in the final data set. For this we use the tidyverse package dplyr, which contains the function select().
 
@@ -76,6 +100,12 @@ The variables we need are: \* Child.ID, \* Visit, \* Diagnosis, \* Ethnicity, \*
 Most variables should make sense, here the less intuitive ones. \* ADOS (Autism Diagnostic Observation Schedule) indicates the severity of the autistic symptoms (the higher the score, the worse the symptoms). Ref: <https://link.springer.com/article/10.1023/A:1005592401947> \* MLU stands for mean length of utterance (usually a proxy for syntactic complexity) \* types stands for unique words (e.g. even if "doggie" is used 100 times it only counts for 1) \* tokens stands for overall amount of words (if "doggie" is used 100 times it counts for 100) \* MullenRaw indicates non verbal IQ, as measured by Mullen Scales of Early Learning (MSEL <https://link.springer.com/referenceworkentry/10.1007%2F978-1-4419-1698-3_596>) \* ExpressiveLangRaw indicates verbal IQ, as measured by MSEL \* Socialization indicates social interaction skills and social responsiveness, as measured by Vineland (<https://cloudfront.ualberta.ca/-/media/ualberta/faculties-and-programs/centres-institutes/community-university-partnership/resources/tools---assessment/vinelandjune-2012.pdf>)
 
 Feel free to rename the variables into something you can remember (i.e. nonVerbalIQ, verbalIQ)
+
+``` r
+demographics <- select(demographics, SUBJ, VISIT, SUBJ,VISIT, Ethnicity, Age, Gender, ADOS, Socialization, ExpressiveLangRaw,MullenRaw)
+utterance <- select(utterance, SUBJ, VISIT, MOT_MLU, CHI_MLU)
+token <- select(token, types_MOT, types_CHI, tokens_MOT, tokens_CHI, SUBJ, VISIT)
+```
 
 2e. Finally we are ready to merge all the data sets into just one.
 
