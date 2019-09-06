@@ -94,8 +94,8 @@ Tip: look through the chapter on data transformation in R for data science (http
 
 ```{r}
 # Changing names of mismatching variable names
-demographics <- rename(demographics, SUBJ=Child.ID)
-demographics <- rename(demographics, VISIT=Visit)
+demographics <- dplyr::rename(demographics, SUBJ=Child.ID)
+demographics <- dplyr::rename(demographics, VISIT=Visit)
 ```
 
 2b. Find a way to homogeneize the way "visit" is reported (visit1 vs. 1).
@@ -155,9 +155,9 @@ Most variables should make sense, here the less intuitive ones.
 Feel free to rename the variables into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ```{r}
-demographics <- select(demographics, SUBJ, VISIT, SUBJ,VISIT, Ethnicity, Age, Gender, ADOS, Socialization, ExpressiveLangRaw,MullenRaw)
+demographics <- select(demographics, SUBJ, VISIT, Diagnosis, Ethnicity, Age, Gender, ADOS, Socialization, ExpressiveLangRaw,MullenRaw)
 utterance <- select(utterance, SUBJ, VISIT, MOT_MLU, CHI_MLU)
-token <- select(token, types_MOT, types_CHI, tokens_MOT, tokens_CHI, SUBJ, VISIT)
+token <- select(token, SUBJ, VISIT, types_MOT, types_CHI, tokens_MOT, tokens_CHI)
 
 ```
 
@@ -168,8 +168,8 @@ Some things to pay attention to:
 * make sure to understand whether (and if so why) there are NAs in the dataset (e.g. some measures were not taken at all visits, some recordings were lost or permission to use was withdrawn)
 
 ```{r}
-
-
+merged_initial <- merge(demographics, token, by=c("SUBJ", "VISIT"), all = T)
+merged_final <- merge(merged_initial, utterance, by=c("SUBJ", "VISIT"), all = T)
 ```
 
 
@@ -184,18 +184,21 @@ A possible way to do so:
 
 
 ```{r}
+visit1 <- filter(demographics, VISIT==1) %>% select(SUBJ, ADOS, MullenRaw, ExpressiveLangRaw, Socialization) %>% dplyr::rename(ADOS1=ADOS, MullenRaw1=MullenRaw, ExpressiveLangRaw1=ExpressiveLangRaw, Socialization1=Socialization)
 
+merged_final <- merge(merged_final, visit1 , by=c("SUBJ"), all = T)
 ```
 
 2g. Final touches
-
 Now we want to
 * anonymize our participants (they are real children!). 
 * make sure the variables have sensible values. E.g. right now gender is marked 1 and 2, but in two weeks you will not be able to remember, which gender were connected to which number, so change the values from 1 and 2 to F and M in the gender variable. For the same reason, you should also change the values of Diagnosis from A and B to ASD (autism spectrum disorder) and TD (typically developing). Tip: Try taking a look at ifelse(), or google "how to rename levels in R".
 * Save the data set using into a csv file. Hint: look into write.csv()
 
 ```{r}
-
+merged_final$Gender[c(merged_final$Gender=="2")] <- "F"
+merged_final$Gender[c(merged_final$Gender=="1")] <- "M"
+levels(merged_final$Diagnosis) <- c("ASD","TD")
 ```
 
 

@@ -68,8 +68,8 @@ Tip: look through the chapter on data transformation in R for data science (<htt
 
 ``` r
 # Changing names of mismatching variable names
-demographics <- rename(demographics, SUBJ=Child.ID)
-demographics <- rename(demographics, VISIT=Visit)
+demographics <- dplyr::rename(demographics, SUBJ=Child.ID)
+demographics <- dplyr::rename(demographics, VISIT=Visit)
 ```
 
 2b. Find a way to homogeneize the way "visit" is reported (visit1 vs. 1).
@@ -102,22 +102,37 @@ Most variables should make sense, here the less intuitive ones. \* ADOS (Autism 
 Feel free to rename the variables into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ``` r
-demographics <- select(demographics, SUBJ, VISIT, SUBJ,VISIT, Ethnicity, Age, Gender, ADOS, Socialization, ExpressiveLangRaw,MullenRaw)
+demographics <- select(demographics, SUBJ, VISIT, Diagnosis, Ethnicity, Age, Gender, ADOS, Socialization, ExpressiveLangRaw,MullenRaw)
 utterance <- select(utterance, SUBJ, VISIT, MOT_MLU, CHI_MLU)
-token <- select(token, types_MOT, types_CHI, tokens_MOT, tokens_CHI, SUBJ, VISIT)
+token <- select(token, SUBJ, VISIT, types_MOT, types_CHI, tokens_MOT, tokens_CHI)
 ```
 
 2e. Finally we are ready to merge all the data sets into just one.
 
 Some things to pay attention to: \* make sure to check that the merge has included all relevant data (e.g. by comparing the number of rows) \* make sure to understand whether (and if so why) there are NAs in the dataset (e.g. some measures were not taken at all visits, some recordings were lost or permission to use was withdrawn)
 
+``` r
+merged_initial <- merge(demographics, token, by=c("SUBJ", "VISIT"), all = T)
+merged_final <- merge(merged_initial, utterance, by=c("SUBJ", "VISIT"), all = T)
+```
+
 2f. Only using clinical measures from Visit 1 In order for our models to be useful, we want to miimize the need to actually test children as they develop. In other words, we would like to be able to understand and predict the children's linguistic development after only having tested them once. Therefore we need to make sure that our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are reporting (for all visits) only the scores from visit 1.
 
 A possible way to do so: \* create a new dataset with only visit 1, child id and the 4 relevant clinical variables to be merged with the old dataset \* rename the clinical variables (e.g. ADOS to ADOS1) and remove the visit (so that the new clinical variables are reported for all 6 visits) \* merge the new dataset with the old
 
-2g. Final touches
+``` r
+visit1 <- filter(demographics, VISIT==1) %>% select(SUBJ, ADOS, MullenRaw, ExpressiveLangRaw, Socialization) %>% dplyr::rename(ADOS1=ADOS, MullenRaw1=MullenRaw, ExpressiveLangRaw1=ExpressiveLangRaw, Socialization1=Socialization)
 
-Now we want to \* anonymize our participants (they are real children!). \* make sure the variables have sensible values. E.g. right now gender is marked 1 and 2, but in two weeks you will not be able to remember, which gender were connected to which number, so change the values from 1 and 2 to F and M in the gender variable. For the same reason, you should also change the values of Diagnosis from A and B to ASD (autism spectrum disorder) and TD (typically developing). Tip: Try taking a look at ifelse(), or google "how to rename levels in R". \* Save the data set using into a csv file. Hint: look into write.csv()
+merged_final <- merge(merged_final, visit1 , by=c("SUBJ"), all = T)
+```
+
+2g. Final touches Now we want to \* anonymize our participants (they are real children!). \* make sure the variables have sensible values. E.g. right now gender is marked 1 and 2, but in two weeks you will not be able to remember, which gender were connected to which number, so change the values from 1 and 2 to F and M in the gender variable. For the same reason, you should also change the values of Diagnosis from A and B to ASD (autism spectrum disorder) and TD (typically developing). Tip: Try taking a look at ifelse(), or google "how to rename levels in R". \* Save the data set using into a csv file. Hint: look into write.csv()
+
+``` r
+merged_final$Gender[c(merged_final$Gender=="2")] <- "F"
+merged_final$Gender[c(merged_final$Gender=="1")] <- "M"
+levels(merged_final$Diagnosis) <- c("ASD","TD")
+```
 
 1.  BONUS QUESTIONS The aim of this last section is to make sure you are fully fluent in the tidyverse. Here's the link to a very helpful book, which explains each function: <http://r4ds.had.co.nz/index.html>
 
