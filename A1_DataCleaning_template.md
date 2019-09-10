@@ -51,6 +51,7 @@ pacman::p_load(tidyverse,janitor, dplyr)
 Load the three data sets, after downloading them from dropbox and saving them in your working directory: \* Demographic data for the participants: <https://www.dropbox.com/s/w15pou9wstgc8fe/demo_train.csv?dl=0> \* Length of utterance data: <https://www.dropbox.com/s/usyauqm37a76of6/LU_train.csv?dl=0> \* Word data: <https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0>
 
 ``` r
+# Read the data into R
 utterance <- read.csv("LU_train.csv")
 token<- read.csv("token_train.csv")
 demographics <- read.csv("demo_train.csv")
@@ -87,6 +88,7 @@ token$VISIT <- str_extract(token$VISIT, "\\d")
 Tip: stringr is helpful again. Look up str\_replace\_all Tip: You can either have one line of code for each child name that is to be changed (easier, more typing) or specify the pattern that you want to match (more complicated: look up "regular expressions", but less typing)
 
 ``` r
+# Removing punctuation from names
 demographics$SUBJ <- str_replace_all(demographics$SUBJ, "[[:punct:]]", "")
 utterance$SUBJ <- str_replace_all(utterance$SUBJ, "[[:punct:]]", "")
 token$SUBJ <- str_replace_all(token$SUBJ, "[[:punct:]]", "")
@@ -102,6 +104,7 @@ Most variables should make sense, here the less intuitive ones. \* ADOS (Autism 
 Feel free to rename the variables into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ``` r
+# Selecting only the relevant collumns
 demographics <- select(demographics, SUBJ, VISIT, Diagnosis, Ethnicity, Age, Gender, ADOS, Socialization, ExpressiveLangRaw,MullenRaw)
 utterance <- select(utterance, SUBJ, VISIT, MOT_MLU, CHI_MLU)
 token <- select(token, SUBJ, VISIT, types_MOT, types_CHI, tokens_MOT, tokens_CHI)
@@ -112,6 +115,7 @@ token <- select(token, SUBJ, VISIT, types_MOT, types_CHI, tokens_MOT, tokens_CHI
 Some things to pay attention to: \* make sure to check that the merge has included all relevant data (e.g. by comparing the number of rows) \* make sure to understand whether (and if so why) there are NAs in the dataset (e.g. some measures were not taken at all visits, some recordings were lost or permission to use was withdrawn)
 
 ``` r
+# Merging data into one dataframe
 merged_initial <- merge(demographics, token, by=c("SUBJ", "VISIT"), all = T)
 merged_final <- merge(merged_initial, utterance, by=c("SUBJ", "VISIT"), all = T)
 ```
@@ -121,17 +125,24 @@ merged_final <- merge(merged_initial, utterance, by=c("SUBJ", "VISIT"), all = T)
 A possible way to do so: \* create a new dataset with only visit 1, child id and the 4 relevant clinical variables to be merged with the old dataset \* rename the clinical variables (e.g. ADOS to ADOS1) and remove the visit (so that the new clinical variables are reported for all 6 visits) \* merge the new dataset with the old
 
 ``` r
+# Creating 4 new collumns only containing data from visit1
 visit1 <- filter(demographics, VISIT==1) %>% select(SUBJ, ADOS, MullenRaw, ExpressiveLangRaw, Socialization) %>% dplyr::rename(ADOS1=ADOS, MullenRaw1=MullenRaw, ExpressiveLangRaw1=ExpressiveLangRaw, Socialization1=Socialization)
 
+# Merging new collumns with final dataframe
 merged_final <- merge(merged_final, visit1 , by=c("SUBJ"), all = T)
 ```
 
 2g. Final touches Now we want to \* anonymize our participants (they are real children!). \* make sure the variables have sensible values. E.g. right now gender is marked 1 and 2, but in two weeks you will not be able to remember, which gender were connected to which number, so change the values from 1 and 2 to F and M in the gender variable. For the same reason, you should also change the values of Diagnosis from A and B to ASD (autism spectrum disorder) and TD (typically developing). Tip: Try taking a look at ifelse(), or google "how to rename levels in R". \* Save the data set using into a csv file. Hint: look into write.csv()
 
 ``` r
-merged_final$Gender[c(merged_final$Gender=="2")] <- "F"
-merged_final$Gender[c(merged_final$Gender=="1")] <- "M"
+# Changing names of collumns to something more meaningful
+merged_final$Gender <- as.character(merged_final$Gender)
+levels(merged_final$Gender) <- c("F","M")
 levels(merged_final$Diagnosis) <- c("ASD","TD")
+
+
+# Anonymzing the data
+merged_final$SUBJ <-  as.numeric(as.factor(merged_final$SUBJ))
 ```
 
 1.  BONUS QUESTIONS The aim of this last section is to make sure you are fully fluent in the tidyverse. Here's the link to a very helpful book, which explains each function: <http://r4ds.had.co.nz/index.html>
