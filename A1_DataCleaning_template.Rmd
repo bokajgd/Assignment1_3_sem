@@ -71,6 +71,7 @@ Load the three data sets, after downloading them from dropbox and saving them in
 * Word data: https://www.dropbox.com/s/8ng1civpl2aux58/token_train.csv?dl=0
 
 ```{r}
+# Read the data into R
 utterance <- read.csv("LU_train.csv")
 token<- read.csv("token_train.csv")
 demographics <- read.csv("demo_train.csv")
@@ -117,6 +118,7 @@ Tip: You can either have one line of code for each child name that is to be chan
 
 
 ```{r}
+# Removing punctuation from names
 demographics$SUBJ <- str_replace_all(demographics$SUBJ, "[[:punct:]]", "")
 utterance$SUBJ <- str_replace_all(utterance$SUBJ, "[[:punct:]]", "")
 token$SUBJ <- str_replace_all(token$SUBJ, "[[:punct:]]", "")
@@ -155,6 +157,7 @@ Most variables should make sense, here the less intuitive ones.
 Feel free to rename the variables into something you can remember (i.e. nonVerbalIQ, verbalIQ)
 
 ```{r}
+# Selecting only the relevant collumns
 demographics <- select(demographics, SUBJ, VISIT, Diagnosis, Ethnicity, Age, Gender, ADOS, Socialization, ExpressiveLangRaw,MullenRaw)
 utterance <- select(utterance, SUBJ, VISIT, MOT_MLU, CHI_MLU)
 token <- select(token, SUBJ, VISIT, types_MOT, types_CHI, tokens_MOT, tokens_CHI)
@@ -168,6 +171,7 @@ Some things to pay attention to:
 * make sure to understand whether (and if so why) there are NAs in the dataset (e.g. some measures were not taken at all visits, some recordings were lost or permission to use was withdrawn)
 
 ```{r}
+# Merging data into one dataframe
 merged_initial <- merge(demographics, token, by=c("SUBJ", "VISIT"), all = T)
 merged_final <- merge(merged_initial, utterance, by=c("SUBJ", "VISIT"), all = T)
 ```
@@ -184,8 +188,10 @@ A possible way to do so:
 
 
 ```{r}
+# Creating 4 new collumns only containing data from visit1
 visit1 <- filter(demographics, VISIT==1) %>% select(SUBJ, ADOS, MullenRaw, ExpressiveLangRaw, Socialization) %>% dplyr::rename(ADOS1=ADOS, MullenRaw1=MullenRaw, ExpressiveLangRaw1=ExpressiveLangRaw, Socialization1=Socialization)
 
+# Merging new collumns with final dataframe
 merged_final <- merge(merged_final, visit1 , by=c("SUBJ"), all = T)
 ```
 
@@ -196,9 +202,14 @@ Now we want to
 * Save the data set using into a csv file. Hint: look into write.csv()
 
 ```{r}
-merged_final$Gender[c(merged_final$Gender=="2")] <- "F"
-merged_final$Gender[c(merged_final$Gender=="1")] <- "M"
+# Changing names of collumns to something more meaningful
+merged_final$Gender <- as.character(merged_final$Gender)
+levels(merged_final$Gender) <- c("F","M")
 levels(merged_final$Diagnosis) <- c("ASD","TD")
+
+
+# Anonymzing the data
+merged_final$SUBJ <-  as.numeric(as.factor(merged_final$SUBJ))
 ```
 
 
@@ -214,7 +225,6 @@ List all kids who:
 3. have not completed all trials. Tip: Use pipes to solve this
 
 ```{r}
-
 
 ```
 
@@ -246,5 +256,5 @@ USING MUTATE, SUMMARISE and PIPES
 
 ```{r}
 
-
+ 
 ```
