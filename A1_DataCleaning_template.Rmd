@@ -210,6 +210,9 @@ levels(merged_final$Diagnosis) <- c("ASD","TD")
 
 # Anonymzing the data
 merged_final$SUBJ <-  as.numeric(as.factor(merged_final$SUBJ))
+
+# Save as csv
+write.csv(merged_final, "Merged_data.csv")
 ```
 
 
@@ -225,7 +228,12 @@ List all kids who:
 3. have not completed all trials. Tip: Use pipes to solve this
 
 ```{r}
-
+# Kids with mean MLU > 2.7
+merged_final %>% group_by(SUBJ) %>% filter(mean(CHI_MLU)>2.7) %>%  select(SUBJ) %>% unique()
+# Kids with MLU on visit 1 < 1.5 
+merged_final %>%  filter(VISIT=="1") %>% filter(CHI_MLU<1.5) %>% select(SUBJ) %>% unique()
+# Kids who have not completed all 6 trials sby CHI_MLU) 
+merged_final %>% group_by(SUBJ) %>% filter(is.na(CHI_MLU) | n()<6) %>% select(SUBJ) %>% unique() 
 ```
 
 
@@ -235,8 +243,11 @@ USING ARRANGE
 2. Sort kids to find the kid who produced the least amount of words on the 1st visit.
 
 ```{r}
+# Aranging after most words on visit 6
+merged_final %>% filter(VISIT=="6") %>% arrange(desc(tokens_CHI))
 
-
+#Aranging after least words on visit 1
+merged_final %>% filter(VISIT=="6") %>% arrange(tokens_CHI)
 ```
 
 USING SELECT
@@ -245,7 +256,7 @@ USING SELECT
 2. What happens if you include the name of a variable multiple times in a select() call?
 
 ```{r}
-
+ads_mlu_tokens <- merged_final %>% filter(Diagnosis=="ASD") %>% select(SUBJ, VISIT, Diagnosis, CHI_MLU, tokens_CHI)
 ```
 
 
@@ -255,6 +266,10 @@ USING MUTATE, SUMMARISE and PIPES
 3. The solution to task above enables us to assess the average amount of words produced by each child. Why don't we just use these average values to describe the language production of the children? What is the advantage of keeping all the data?
 
 ```{r}
+# Adding collumn with mean MLU (with NAs marked as O) per visit
+mean_tokens_CHI <- aggregate(merged_final[, 14], list(merged_final$SUBJ), mean, na.rm=TRUE)
+mean_tokens_CHI <- dplyr::rename(mean_tokens_CHI, SUBJ=Group.1, mean_tokens_CHI=x)
+merged_final_2 <- merge(merged_final, mean_tokens_CHI , by=c("SUBJ"), all = T)
 
- 
+# We are throwing away valuable data regagrding the variance in the data
 ```
