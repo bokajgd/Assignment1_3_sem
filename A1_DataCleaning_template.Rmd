@@ -172,8 +172,8 @@ Some things to pay attention to:
 
 ```{r}
 # Merging data into one dataframe
-merged_initial <- merge(demographics, token, by=c("SUBJ", "VISIT"), all = T)
-merged_final <- merge(merged_initial, utterance, by=c("SUBJ", "VISIT"), all = T)
+merged_initial <- merge(demographics, token, by=c("SUBJ", "VISIT"))
+merged_final <- merge(merged_initial, utterance, by=c("SUBJ", "VISIT"))
 ```
 
 
@@ -192,7 +192,7 @@ A possible way to do so:
 visit1 <- filter(demographics, VISIT==1) %>% select(SUBJ, ADOS, MullenRaw, ExpressiveLangRaw, Socialization) %>% dplyr::rename(ADOS1=ADOS, MullenRaw1=MullenRaw, ExpressiveLangRaw1=ExpressiveLangRaw, Socialization1=Socialization)
 
 # Merging new collumns with final dataframe
-merged_final <- merge(merged_final, visit1 , by=c("SUBJ"), all = T)
+merged_final <- merge(merged_final, visit1 , by=c("SUBJ"))
 ```
 
 2g. Final touches
@@ -271,5 +271,5 @@ mean_tokens_CHI <- aggregate(merged_final[, 14], list(merged_final$SUBJ), mean, 
 mean_tokens_CHI <- dplyr::rename(mean_tokens_CHI, SUBJ=Group.1, mean_tokens_CHI=x)
 merged_final_2 <- merge(merged_final, mean_tokens_CHI , by=c("SUBJ"), all = T)
 
-# We are throwing away valuable data regagrding the variance in the data
+# We are throwing away valuable data about the variance in the data
 ```

@@ -116,8 +116,8 @@ Some things to pay attention to: \* make sure to check that the merge has includ
 
 ``` r
 # Merging data into one dataframe
-merged_initial <- merge(demographics, token, by=c("SUBJ", "VISIT"), all = T)
-merged_final <- merge(merged_initial, utterance, by=c("SUBJ", "VISIT"), all = T)
+merged_initial <- merge(demographics, token, by=c("SUBJ", "VISIT"))
+merged_final <- merge(merged_initial, utterance, by=c("SUBJ", "VISIT"))
 ```
 
 2f. Only using clinical measures from Visit 1 In order for our models to be useful, we want to miimize the need to actually test children as they develop. In other words, we would like to be able to understand and predict the children's linguistic development after only having tested them once. Therefore we need to make sure that our ADOS, MullenRaw, ExpressiveLangRaw and Socialization variables are reporting (for all visits) only the scores from visit 1.
@@ -129,7 +129,7 @@ A possible way to do so: \* create a new dataset with only visit 1, child id and
 visit1 <- filter(demographics, VISIT==1) %>% select(SUBJ, ADOS, MullenRaw, ExpressiveLangRaw, Socialization) %>% dplyr::rename(ADOS1=ADOS, MullenRaw1=MullenRaw, ExpressiveLangRaw1=ExpressiveLangRaw, Socialization1=Socialization)
 
 # Merging new collumns with final dataframe
-merged_final <- merge(merged_final, visit1 , by=c("SUBJ"), all = T)
+merged_final <- merge(merged_final, visit1 , by=c("SUBJ"))
 ```
 
 2g. Final touches Now we want to \* anonymize our participants (they are real children!). \* make sure the variables have sensible values. E.g. right now gender is marked 1 and 2, but in two weeks you will not be able to remember, which gender were connected to which number, so change the values from 1 and 2 to F and M in the gender variable. For the same reason, you should also change the values of Diagnosis from A and B to ASD (autism spectrum disorder) and TD (typically developing). Tip: Try taking a look at ifelse(), or google "how to rename levels in R". \* Save the data set using into a csv file. Hint: look into write.csv()
@@ -163,19 +163,21 @@ write.csv(merged_final, "Merged_data.csv")
 merged_final %>% group_by(SUBJ) %>% filter(mean(CHI_MLU)>2.7) %>%  select(SUBJ) %>% unique()
 ```
 
-    ## # A tibble: 9 x 1
-    ## # Groups:   SUBJ [9]
-    ##    SUBJ
-    ##   <dbl>
-    ## 1     3
-    ## 2     4
-    ## 3    13
-    ## 4    19
-    ## 5    27
-    ## 6    44
-    ## 7    53
-    ## 8    57
-    ## 9    64
+    ## # A tibble: 11 x 1
+    ## # Groups:   SUBJ [11]
+    ##     SUBJ
+    ##    <dbl>
+    ##  1     2
+    ##  2     3
+    ##  3     4
+    ##  4    12
+    ##  5    18
+    ##  6    25
+    ##  7    26
+    ##  8    42
+    ##  9    49
+    ## 10    53
+    ## 11    60
 
 ``` r
 # Kids with MLU on visit 1 < 1.5 
@@ -189,75 +191,70 @@ merged_final %>%  filter(VISIT=="1") %>% filter(CHI_MLU<1.5) %>% select(SUBJ) %>
     ## 4     7
     ## 5     9
     ## 6    10
-    ## 7    12
-    ## 8    13
-    ## 9    15
-    ## 10   16
-    ## 11   18
-    ## 12   20
-    ## 13   21
-    ## 14   22
-    ## 15   24
-    ## 16   25
-    ## 17   26
-    ## 18   29
-    ## 19   30
-    ## 20   31
-    ## 21   32
-    ## 22   35
-    ## 23   36
-    ## 24   37
-    ## 25   38
-    ## 26   39
-    ## 27   40
-    ## 28   41
-    ## 29   42
-    ## 30   43
-    ## 31   44
-    ## 32   46
-    ## 33   47
-    ## 34   49
-    ## 35   51
-    ## 36   52
-    ## 37   53
-    ## 38   54
-    ## 39   55
-    ## 40   56
-    ## 41   58
-    ## 42   59
-    ## 43   60
-    ## 44   61
-    ## 45   62
-    ## 46   63
-    ## 47   65
+    ## 7    11
+    ## 8    12
+    ## 9    14
+    ## 10   15
+    ## 11   17
+    ## 12   19
+    ## 13   20
+    ## 14   21
+    ## 15   22
+    ## 16   23
+    ## 17   24
+    ## 18   27
+    ## 19   28
+    ## 20   29
+    ## 21   30
+    ## 22   33
+    ## 23   34
+    ## 24   35
+    ## 25   36
+    ## 26   37
+    ## 27   38
+    ## 28   39
+    ## 29   40
+    ## 30   41
+    ## 31   42
+    ## 32   44
+    ## 33   45
+    ## 34   46
+    ## 35   47
+    ## 36   48
+    ## 37   49
+    ## 38   50
+    ## 39   51
+    ## 40   52
+    ## 41   54
+    ## 42   55
+    ## 43   56
+    ## 44   57
+    ## 45   58
+    ## 46   59
+    ## 47   61
 
 ``` r
 # Kids who have not completed all 6 trials sby CHI_MLU) 
 merged_final %>% group_by(SUBJ) %>% filter(is.na(CHI_MLU) | n()<6) %>% select(SUBJ) %>% unique() 
 ```
 
-    ## # A tibble: 18 x 1
-    ## # Groups:   SUBJ [18]
+    ## # A tibble: 13 x 1
+    ## # Groups:   SUBJ [13]
     ##     SUBJ
     ##    <dbl>
     ##  1     2
     ##  2     7
     ##  3     8
     ##  4     9
-    ##  5    11
-    ##  6    18
-    ##  7    23
-    ##  8    28
-    ##  9    40
-    ## 10    42
-    ## 11    46
-    ## 12    47
-    ## 13    48
-    ## 14    50
-    ## 15    52
-    ## 16    59
-    ## 17    60
-    ## 18    66
+    ##  5    17
+    ##  6    26
+    ##  7    38
+    ##  8    40
+    ##  9    44
+    ## 10    45
+    ## 11    48
+    ## 12    55
+    ## 13    56
 
 USING ARRANGE
 
@@ -270,66 +267,62 @@ merged_final %>% filter(VISIT=="6") %>% arrange(desc(tokens_CHI))
 ```
 
     ##    SUBJ VISIT Diagnosis        Ethnicity   Age Gender ADOS Socialization
-    ## 1    59     6        TD            White 41.93      1   NA            95
-    ## 2    28     6       ASD            White 51.00      1   NA            90
-    ## 3    19     6        TD            White 44.07      1   NA           116
-    ## 4    27     6        TD            White 42.47      1   NA           103
-    ## 5    45     6       ASD            White 57.37      1   NA            77
-    ## 6    39     6       ASD            White 58.77      1   NA           116
-    ## 7    14     6        TD            White 39.40      1   NA            92
-    ## 8    24     6        TD            White 39.23      2   NA           110
-    ## 9    15     6        TD            White 39.43      1   NA            83
+    ## 1    55     6        TD            White 41.93      1   NA            95
+    ## 2    26     6       ASD            White 51.00      1   NA            90
+    ## 3    18     6        TD            White 44.07      1   NA           116
+    ## 4    25     6        TD            White 42.47      1   NA           103
+    ## 5    43     6       ASD            White 57.37      1   NA            77
+    ## 6    37     6       ASD            White 58.77      1   NA           116
+    ## 7    13     6        TD            White 39.40      1   NA            92
+    ## 8    22     6        TD            White 39.23      2   NA           110
+    ## 9    14     6        TD            White 39.43      1   NA            83
     ## 10    4     6       ASD     White/Latino 51.37      1   NA            74
-    ## 11   44     6        TD            White 40.13      1   NA           101
-    ## 12   64     6       ASD            White 54.73      1   NA            97
-    ## 13   17     6        TD            White 42.93      1   NA            97
-    ## 14   43     6        TD            White 39.93      1   NA           101
+    ## 11   42     6        TD            White 40.13      1   NA           101
+    ## 12   60     6       ASD            White 54.73      1   NA            97
+    ## 13   16     6        TD            White 42.93      1   NA            97
+    ## 14   41     6        TD            White 39.93      1   NA           101
     ## 15    2     6       ASD            White 49.70      1   NA            81
     ## 16    1     6        TD            White 40.13      1   NA           100
-    ## 17   12     6        TD            White 40.27      1   NA           101
-    ## 18   63     6        TD            White 41.00      1   NA            NA
-    ## 19   53     6        TD            White 43.40      1   NA           101
-    ## 20   13     6        TD            White 41.50      1   NA            97
-    ## 21   62     6       ASD            White 46.07      1   NA            79
-    ## 22   37     6        TD            White 39.07      1   NA            97
-    ## 23   36     6       ASD            White 53.77      1   NA            92
-    ## 24   21     6       ASD            White 37.30      1   NA           103
-    ## 25   42     6       ASD         Lebanese 46.40      1   NA            94
-    ## 26   38     6        TD            White 38.53      1   NA            97
+    ## 17   11     6        TD            White 40.27      1   NA           101
+    ## 18   59     6        TD            White 41.00      1   NA            NA
+    ## 19   49     6        TD            White 43.40      1   NA           101
+    ## 20   12     6        TD            White 41.50      1   NA            97
+    ## 21   58     6       ASD            White 46.07      1   NA            79
+    ## 22   35     6        TD            White 39.07      1   NA            97
+    ## 23   34     6       ASD            White 53.77      1   NA            92
+    ## 24   20     6       ASD            White 37.30      1   NA           103
+    ## 25   40     6       ASD         Lebanese 46.40      1   NA            94
+    ## 26   36     6        TD            White 38.53      1   NA            97
     ## 27    5     6       ASD            White 54.13      1   NA            75
-    ## 28   29     6        TD            White 41.17      1   NA           106
-    ## 29   30     6        TD            White 39.43      1   NA            95
-    ## 30   58     6        TD            White 39.30      1   NA           101
+    ## 28   27     6        TD            White 41.17      1   NA           106
+    ## 29   28     6        TD            White 39.43      1   NA            95
+    ## 30   54     6        TD            White 39.30      1   NA           101
     ## 31    3     6        TD            White 45.07      2   NA            86
-    ## 32   56     6        TD            White 43.03      1   NA            97
-    ## 33   33     6        TD            White 43.80      1   NA           108
-    ## 34   16     6        TD            White 40.30      1   NA            94
-    ## 35   55     6        TD            Asian 42.10      2   NA           108
-    ## 36   57     6        TD            White 44.43      1   NA           101
-    ## 37   52     6       ASD            White    NA      1   NA            63
+    ## 32   52     6        TD            White 43.03      1   NA            97
+    ## 33   31     6        TD            White 43.80      1   NA           108
+    ## 34   15     6        TD            White 40.30      1   NA            94
+    ## 35   51     6        TD            Asian 42.10      2   NA           108
+    ## 36   53     6        TD            White 44.43      1   NA           101
+    ## 37   48     6       ASD            White    NA      1   NA            63
     ## 38    6     6       ASD      Bangladeshi 46.53      2   NA            74
-    ## 39   20     6       ASD            White 56.73      1   NA            72
-    ## 40   25     6       ASD     White/Latino 47.50      1   NA            65
-    ## 41   65     6       ASD            White 62.33      1   NA           103
-    ## 42   31     6       ASD            White 55.17      1   NA            72
+    ## 39   19     6       ASD            White 56.73      1   NA            72
+    ## 40   23     6       ASD     White/Latino 47.50      1   NA            65
+    ## 41   61     6       ASD            White 62.33      1   NA           103
+    ## 42   29     6       ASD            White 55.17      1   NA            72
     ## 43    8     6        TD            White 40.17      1   NA           108
-    ## 44   32     6       ASD            White 56.43      1   NA            85
+    ## 44   30     6       ASD            White 56.43      1   NA            85
     ## 45   10     6        TD            White 40.43      1   NA           103
-    ## 46   26     6       ASD            White 62.40      1   NA            68
-    ## 47   49     6       ASD            White 57.43      1   NA            59
-    ## 48   41     6       ASD      White/Asian 53.63      1   NA            63
-    ## 49   34     6       ASD            White 54.63      1   NA            66
-    ## 50   35     6       ASD African American 46.17      2   NA            83
-    ## 51   61     6       ASD            White 61.70      2   NA            68
-    ## 52   51     6        TD            White 40.37      2   NA           101
-    ## 53   18     6       ASD            White 54.43      1   NA            65
-    ## 54   60     6       ASD            White    NA      1   NA            NA
-    ## 55   54     6       ASD            White 62.40      1   NA            66
-    ## 56   22     6       ASD African American 48.97      1   NA            65
-    ## 57    7     6       ASD            White 60.33      2   NA            59
-    ## 58    9     6        TD            White    NA      2   NA            NA
-    ## 59   40     6        TD            White 40.23      2   NA           114
-    ## 60   46     6        TD            White 39.93      1   NA           118
+    ## 46   24     6       ASD            White 62.40      1   NA            68
+    ## 47   46     6       ASD            White 57.43      1   NA            59
+    ## 48   39     6       ASD      White/Asian 53.63      1   NA            63
+    ## 49   32     6       ASD            White 54.63      1   NA            66
+    ## 50   33     6       ASD African American 46.17      2   NA            83
+    ## 51   57     6       ASD            White 61.70      2   NA            68
+    ## 52   47     6        TD            White 40.37      2   NA           101
+    ## 53   17     6       ASD            White 54.43      1   NA            65
+    ## 54   56     6       ASD            White    NA      1   NA            NA
+    ## 55   50     6       ASD            White 62.40      1   NA            66
+    ## 56   21     6       ASD African American 48.97      1   NA            65
     ##    ExpressiveLangRaw MullenRaw types_MOT types_CHI tokens_MOT tokens_CHI
     ## 1                 38        45       367       260       1731       1294
     ## 2                 46        46       452       273       3076       1249
@@ -387,10 +380,6 @@ merged_final %>% filter(VISIT=="6") %>% arrange(desc(tokens_CHI))
     ## 54                17        34       284         6       1390         36
     ## 55                11        24       370         4       1396          8
     ## 56                16        26       388         2       2077          2
-    ## 57                27        32        NA        NA         NA         NA
-    ## 58                NA        NA        NA        NA         NA         NA
-    ## 59                43        49        NA        NA         NA         NA
-    ## 60                42        40        NA        NA         NA         NA
     ##     MOT_MLU   CHI_MLU ADOS1 MullenRaw1 ExpressiveLangRaw1 Socialization1
     ## 1  3.957230 2.9092742     0         26                 17             96
     ## 2  4.111413 3.3643411    11         32                 33            100
@@ -448,10 +437,6 @@ merged_final %>% filter(VISIT=="6") %>% arrange(desc(tokens_CHI))
     ## 54 3.474725 1.0588235    14         27                 11             77
     ## 55 3.886842 1.3333333    19         17                 10             64
     ## 56 3.943636 0.5000000    21         22                  8             72
-    ## 57       NA        NA    18         24                 14             65
-    ## 58       NA        NA     0         24                 18            100
-    ## 59       NA        NA     1         29                 28            104
-    ## 60       NA        NA     3         30                 20             94
 
 ``` r
 #Aranging after least words on visit 1
@@ -459,66 +444,62 @@ merged_final %>% filter(VISIT=="6") %>% arrange(tokens_CHI)
 ```
 
     ##    SUBJ VISIT Diagnosis        Ethnicity   Age Gender ADOS Socialization
-    ## 1    22     6       ASD African American 48.97      1   NA            65
-    ## 2    54     6       ASD            White 62.40      1   NA            66
-    ## 3    60     6       ASD            White    NA      1   NA            NA
-    ## 4    18     6       ASD            White 54.43      1   NA            65
-    ## 5    51     6        TD            White 40.37      2   NA           101
-    ## 6    61     6       ASD            White 61.70      2   NA            68
-    ## 7    35     6       ASD African American 46.17      2   NA            83
-    ## 8    34     6       ASD            White 54.63      1   NA            66
-    ## 9    41     6       ASD      White/Asian 53.63      1   NA            63
-    ## 10   49     6       ASD            White 57.43      1   NA            59
-    ## 11   26     6       ASD            White 62.40      1   NA            68
+    ## 1    21     6       ASD African American 48.97      1   NA            65
+    ## 2    50     6       ASD            White 62.40      1   NA            66
+    ## 3    56     6       ASD            White    NA      1   NA            NA
+    ## 4    17     6       ASD            White 54.43      1   NA            65
+    ## 5    47     6        TD            White 40.37      2   NA           101
+    ## 6    57     6       ASD            White 61.70      2   NA            68
+    ## 7    33     6       ASD African American 46.17      2   NA            83
+    ## 8    32     6       ASD            White 54.63      1   NA            66
+    ## 9    39     6       ASD      White/Asian 53.63      1   NA            63
+    ## 10   46     6       ASD            White 57.43      1   NA            59
+    ## 11   24     6       ASD            White 62.40      1   NA            68
     ## 12   10     6        TD            White 40.43      1   NA           103
-    ## 13   32     6       ASD            White 56.43      1   NA            85
+    ## 13   30     6       ASD            White 56.43      1   NA            85
     ## 14    8     6        TD            White 40.17      1   NA           108
-    ## 15   31     6       ASD            White 55.17      1   NA            72
-    ## 16   65     6       ASD            White 62.33      1   NA           103
-    ## 17   25     6       ASD     White/Latino 47.50      1   NA            65
-    ## 18   20     6       ASD            White 56.73      1   NA            72
+    ## 15   29     6       ASD            White 55.17      1   NA            72
+    ## 16   61     6       ASD            White 62.33      1   NA           103
+    ## 17   23     6       ASD     White/Latino 47.50      1   NA            65
+    ## 18   19     6       ASD            White 56.73      1   NA            72
     ## 19    6     6       ASD      Bangladeshi 46.53      2   NA            74
-    ## 20   52     6       ASD            White    NA      1   NA            63
-    ## 21   57     6        TD            White 44.43      1   NA           101
-    ## 22   55     6        TD            Asian 42.10      2   NA           108
-    ## 23   16     6        TD            White 40.30      1   NA            94
-    ## 24   33     6        TD            White 43.80      1   NA           108
-    ## 25   56     6        TD            White 43.03      1   NA            97
+    ## 20   48     6       ASD            White    NA      1   NA            63
+    ## 21   53     6        TD            White 44.43      1   NA           101
+    ## 22   51     6        TD            Asian 42.10      2   NA           108
+    ## 23   15     6        TD            White 40.30      1   NA            94
+    ## 24   31     6        TD            White 43.80      1   NA           108
+    ## 25   52     6        TD            White 43.03      1   NA            97
     ## 26    3     6        TD            White 45.07      2   NA            86
-    ## 27   58     6        TD            White 39.30      1   NA           101
-    ## 28   30     6        TD            White 39.43      1   NA            95
-    ## 29   29     6        TD            White 41.17      1   NA           106
+    ## 27   54     6        TD            White 39.30      1   NA           101
+    ## 28   28     6        TD            White 39.43      1   NA            95
+    ## 29   27     6        TD            White 41.17      1   NA           106
     ## 30    5     6       ASD            White 54.13      1   NA            75
-    ## 31   38     6        TD            White 38.53      1   NA            97
-    ## 32   42     6       ASD         Lebanese 46.40      1   NA            94
-    ## 33   21     6       ASD            White 37.30      1   NA           103
-    ## 34   36     6       ASD            White 53.77      1   NA            92
-    ## 35   37     6        TD            White 39.07      1   NA            97
-    ## 36   62     6       ASD            White 46.07      1   NA            79
-    ## 37   13     6        TD            White 41.50      1   NA            97
-    ## 38   53     6        TD            White 43.40      1   NA           101
-    ## 39   63     6        TD            White 41.00      1   NA            NA
-    ## 40   12     6        TD            White 40.27      1   NA           101
+    ## 31   36     6        TD            White 38.53      1   NA            97
+    ## 32   40     6       ASD         Lebanese 46.40      1   NA            94
+    ## 33   20     6       ASD            White 37.30      1   NA           103
+    ## 34   34     6       ASD            White 53.77      1   NA            92
+    ## 35   35     6        TD            White 39.07      1   NA            97
+    ## 36   58     6       ASD            White 46.07      1   NA            79
+    ## 37   12     6        TD            White 41.50      1   NA            97
+    ## 38   49     6        TD            White 43.40      1   NA           101
+    ## 39   59     6        TD            White 41.00      1   NA            NA
+    ## 40   11     6        TD            White 40.27      1   NA           101
     ## 41    1     6        TD            White 40.13      1   NA           100
     ## 42    2     6       ASD            White 49.70      1   NA            81
-    ## 43   43     6        TD            White 39.93      1   NA           101
-    ## 44   17     6        TD            White 42.93      1   NA            97
-    ## 45   64     6       ASD            White 54.73      1   NA            97
-    ## 46   44     6        TD            White 40.13      1   NA           101
+    ## 43   41     6        TD            White 39.93      1   NA           101
+    ## 44   16     6        TD            White 42.93      1   NA            97
+    ## 45   60     6       ASD            White 54.73      1   NA            97
+    ## 46   42     6        TD            White 40.13      1   NA           101
     ## 47    4     6       ASD     White/Latino 51.37      1   NA            74
-    ## 48   15     6        TD            White 39.43      1   NA            83
-    ## 49   24     6        TD            White 39.23      2   NA           110
-    ## 50   14     6        TD            White 39.40      1   NA            92
-    ## 51   39     6       ASD            White 58.77      1   NA           116
-    ## 52   45     6       ASD            White 57.37      1   NA            77
-    ## 53   27     6        TD            White 42.47      1   NA           103
-    ## 54   19     6        TD            White 44.07      1   NA           116
-    ## 55   28     6       ASD            White 51.00      1   NA            90
-    ## 56   59     6        TD            White 41.93      1   NA            95
-    ## 57    7     6       ASD            White 60.33      2   NA            59
-    ## 58    9     6        TD            White    NA      2   NA            NA
-    ## 59   40     6        TD            White 40.23      2   NA           114
-    ## 60   46     6        TD            White 39.93      1   NA           118
+    ## 48   14     6        TD            White 39.43      1   NA            83
+    ## 49   22     6        TD            White 39.23      2   NA           110
+    ## 50   13     6        TD            White 39.40      1   NA            92
+    ## 51   37     6       ASD            White 58.77      1   NA           116
+    ## 52   43     6       ASD            White 57.37      1   NA            77
+    ## 53   25     6        TD            White 42.47      1   NA           103
+    ## 54   18     6        TD            White 44.07      1   NA           116
+    ## 55   26     6       ASD            White 51.00      1   NA            90
+    ## 56   55     6        TD            White 41.93      1   NA            95
     ##    ExpressiveLangRaw MullenRaw types_MOT types_CHI tokens_MOT tokens_CHI
     ## 1                 16        26       388         2       2077          2
     ## 2                 11        24       370         4       1396          8
@@ -576,10 +557,6 @@ merged_final %>% filter(VISIT=="6") %>% arrange(tokens_CHI)
     ## 54                50        50       516       235       2576       1079
     ## 55                46        46       452       273       3076       1249
     ## 56                38        45       367       260       1731       1294
-    ## 57                27        32        NA        NA         NA         NA
-    ## 58                NA        NA        NA        NA         NA         NA
-    ## 59                43        49        NA        NA         NA         NA
-    ## 60                42        40        NA        NA         NA         NA
     ##     MOT_MLU   CHI_MLU ADOS1 MullenRaw1 ExpressiveLangRaw1 Socialization1
     ## 1  3.943636 0.5000000    21         22                  8             72
     ## 2  3.886842 1.3333333    19         17                 10             64
@@ -637,10 +614,6 @@ merged_final %>% filter(VISIT=="6") %>% arrange(tokens_CHI)
     ## 54 4.013353 2.9095355     0         29                 33            106
     ## 55 4.111413 3.3643411    11         32                 33            100
     ## 56 3.957230 2.9092742     0         26                 17             96
-    ## 57       NA        NA    18         24                 14             65
-    ## 58       NA        NA     0         24                 18            100
-    ## 59       NA        NA     1         29                 28            104
-    ## 60       NA        NA     3         30                 20             94
 
 USING SELECT
 
@@ -659,5 +632,5 @@ mean_tokens_CHI <- aggregate(merged_final[, 14], list(merged_final$SUBJ), mean, 
 mean_tokens_CHI <- dplyr::rename(mean_tokens_CHI, SUBJ=Group.1, mean_tokens_CHI=x)
 merged_final_2 <- merge(merged_final, mean_tokens_CHI , by=c("SUBJ"), all = T)
 
-# We are throwing away valuable data regagrding the variance in the data
+# We are throwing away valuable data about the variance in the data
 ```
